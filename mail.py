@@ -4,13 +4,12 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.header import Header
 
-
 def sendHtmlMail(emailId, subject, content):
-    sender_email = "excellentdemo35@gmail.com"
-    sender_password = "efvhoqjojppepsae"
+    sender_email = "admin@mlhtracker.com"
+    sender_password = "WR}8Cg#P}ijz"
     msg = MIMEMultipart()
     msg["Subject"] = subject
-    msg["From"] = str(Header('MLH Tracker', 'utf-8')) + '<excellentdemo35@gmail.com>'  # set sender name and email address"
+    msg["From"] = str(Header('MLH Tracker', 'utf-8')) + '<admin@mlhtracker.com>'  # set sender name and email address"
     msg["To"] = emailId
 
     # Set the HTML content
@@ -18,18 +17,18 @@ def sendHtmlMail(emailId, subject, content):
     msg.attach(MIMEText(html, "html"))
 
     # Send the email
-    with smtplib.SMTP("smtp.gmail.com", 587) as smtp:
+    with smtplib.SMTP("mail.mlhtracker.com", 587) as smtp:
         smtp.ehlo()
         smtp.starttls()
         smtp.login(sender_email, sender_password)
         smtp.send_message(msg)
 
 def sendNormalMail(emailId, subject, content):
-    sender_email = "excellentdemo35@gmail.com"
-    sender_password = "efvhoqjojppepsae"
+    sender_email = "admin@mlhtracker.com"
+    sender_password = "WR}8Cg#P}ijz"
     receiver_email = emailId
 
-    server = smtplib.SMTP("smtp.gmail.com", 587)
+    server = smtplib.SMTP("mail.mlhtracker.com", 587)
     server.ehlo()
     server.starttls()
     server.login(sender_email, sender_password)
@@ -45,3 +44,5 @@ def sendNormalMail(emailId, subject, content):
     except Exception as e:
         logging.error(str(e))
     server.quit()
+
+#sendHtmlMail("kannanaa21@gmail.com", "test", "<p>Kannan</p>")
