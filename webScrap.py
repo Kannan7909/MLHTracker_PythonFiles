@@ -12,19 +12,27 @@ import schedule
 import logging
 import mail
 
+
 class mlhTracker:
     def __init__(self):
         self.timestr = time.strftime("%Y%m%d-%H%M%S")
         self.today = str(datetime.today()).split()[0]
         self.current_time = datetime.now().time()
+        self.logingTime = time.strftime("%Y/%m/%d %H:%M:%S")
         logging.basicConfig(filename='error.log', level=logging.ERROR)
-        # database configuration
-        self.connection = mysql.connector.connect(
-            host="162.241.85.86",
-            user="mlhtracc_localhost",
-            password="MLHTracker@123",
-            database="mlhtracc_tracker"
-        )
+
+    def dbConnection(self):
+        try:
+            # database configuration
+            connection = mysql.connector.connect(
+                host="162.241.85.86",
+                user="mlhtracc_localhost",
+                password="MLHTracker@123",
+                database="mlhtracc_tracker"
+            )
+        except Exception as e:
+            logging.error("Error in Database connection"+self.logingTime + str(e))
+        return connection
 
     def checkTheFoldersIsExpired(self):
         directories = os.listdir()
@@ -43,19 +51,27 @@ class mlhTracker:
                 continue;
 
     def getRegions(self):
-        cursor = self.connection.cursor()
-        cursor.execute("SELECT * FROM regions")
-        regions = cursor.fetchall()
-        cursor.close()
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            cursor.execute("SELECT * FROM regions")
+            regions = cursor.fetchall()
+            cursor.close()
+        except Exception as e:
+            logging.error("Error in select regions"+self.logingTime + str(e))
         return regions
 
     def getLenders(self, regionId):
-        cursor = self.connection.cursor()
-        sql = "SELECT * FROM lenders WHERE regionId = %s"
-        params = (regionId,)
-        cursor.execute(sql, params)
-        lenders = cursor.fetchall()
-        cursor.close()
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "SELECT * FROM lenders WHERE regionId = %s"
+            params = (regionId,)
+            cursor.execute(sql, params)
+            lenders = cursor.fetchall()
+            cursor.close()
+        except Exception as e:
+            logging.error("Error in select lenders"+self.logingTime + str(e))
         return lenders
 
     def removeTags(self,html):
@@ -72,11 +88,11 @@ class mlhTracker:
         try:
             page = requests.get(URL)
         except Exception as e:
-            logging.error(str(e))
+            logging.error(self.logingTime+str(e))
         try:
             soup = self.removeTags(page.content)
         except Exception as e:
-            logging.error(str(e))
+            logging.error(self.logingTime+str(e))
 
         publish = soup.find_all(id="publish")
 
@@ -92,7 +108,7 @@ class mlhTracker:
         try:
             page = requests.get(URL)
         except Exception as e:
-            logging.error(str(e))
+            logging.error(self.logingTime+str(e))
         return page
 
     def getContent(self,lenderLastUpdatedDate,soup):
@@ -124,49 +140,174 @@ class mlhTracker:
         return content;
 
     def updateRegionDate(self,regionId, regionLastModifiedDate):
-        cursor = self.connection.cursor()
-        sql = "UPDATE regions SET lastUpdatedDate = %s WHERE regionId = %s"
-        params = (regionLastModifiedDate, regionId)
-        cursor.execute(sql, params)
-        connection.commit()
-        cursor.close()
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "UPDATE regions SET lastUpdatedDate = %s WHERE regionId = %s"
+            params = (regionLastModifiedDate, regionId)
+            cursor.execute(sql, params)
+            connection.commit()
+        except Exception as e:
+            logging.error(self.logingTime + str(e))
+        finally:
+            cursor.close()
 
     def updateLenderDate(self,lenderId, lenderLastModifiedDate):
-        cursor = self.connection.cursor()
-        sql = "UPDATE lenders SET lastUpdatedDate = %s WHERE lenderId = %s"
-        params = lenderLastModifiedDate, lenderId
-        cursor.execute(sql, params)
-        connection.commit()
-        cursor.close()
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "UPDATE lenders SET lastUpdatedDate = %s WHERE lenderId = %s"
+            params = lenderLastModifiedDate, lenderId
+            cursor.execute(sql, params)
+            connection.commit()
+        except Exception as e:
+            logging.error("Error in update lenders updated date"+self.logingTime + str(e))
+        finally:
+            cursor.close()
 
     def getCustomers(self):
-        cursor = self.connection.cursor()
-        sql = "SELECT customerId, firstName, lastName, email, phone, address, company, emailValidation from customers where emailValidation = %s"
-        params = (1,)
-        cursor.execute(sql, params)
-        customers = cursor.fetchall()
-        cursor.close()
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "SELECT customerId, firstName, lastName, email, phone, address, company, emailValidation from customers where emailValidation = %s"
+            params = (1,)
+            cursor.execute(sql, params)
+            customers = cursor.fetchall()
+            cursor.close()
+        except Exception as e:
+            logging.error("Error in get customers"+self.logingTime + str(e))
         return customers
 
     def getCustomerLenders(self,customerId):
-        cursor = self.connection.cursor()
-        sql = "SELECT customerId, regions.uId as regionUId, regions.region as region, lenders.uId as lenderUId, " \
-              "lenders.lender as lender FROM lender_child LEFT OUTER JOIN regions ON lender_child.regionId = regions.regionId " \
-              "LEFT OUTER JOIN lenders ON lender_child.lenderId = lenders.lenderId WHERE customerId = %s"
-        params = (customerId,)
-        cursor.execute(sql, params)
-        customerLenders = cursor.fetchall()
-        cursor.close()
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "SELECT customerId, regions.uId as regionUId, regions.region as region, lenders.uId as lenderUId, " \
+                  "lenders.lender as lender, lenders.lenderId FROM lender_child LEFT OUTER JOIN regions ON lender_child.regionId = regions.regionId " \
+                  "LEFT OUTER JOIN lenders ON lender_child.lenderId = lenders.lenderId WHERE customerId = %s"
+            params = (customerId,)
+            cursor.execute(sql, params)
+            customerLenders = cursor.fetchall()
+            cursor.close()
+        except Exception as e:
+            logging.error("Error in get customer lenders"+self.logingTime + str(e))
         return customerLenders
+
+    def getLenderLastRunDate(self, UId, zipUId):
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "SELECT regionId From regions WHERE uId = %s"
+            params = (zipUId,)
+            cursor.execute(sql, params)
+            regionId = cursor.fetchone()
+        except Exception as e:
+            logging.error("Error in get last run date"+self.logingTime + str(e))
+        for regionId in regionId:
+            regionId = regionId
+
+        try:
+            sql = "SELECT lastRunDate From lenders WHERE uId = %s AND regionId = %s"
+            params = (UId,regionId)
+            cursor.execute(sql, params)
+            lenderLastRunDate = cursor.fetchone()
+            cursor.close()
+        except Exception as e:
+            logging.error("Error in get last run date"+self.logingTime + str(e))
+        for lenderLastRunDate in lenderLastRunDate:
+            lenderLastRunDate = lenderLastRunDate
+        return lenderLastRunDate
+
+    def updateLenderLastRunDate(self, lastRunDate,lenderId):
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "UPDATE lenders SET lastRunDate = %s WHERE lenderId = %s"
+            params = lastRunDate, lenderId
+            cursor.execute(sql, params)
+            connection.commit()
+            cursor.close()
+        except Exception as e:
+            logging.error("Error in update lenders last run date"+self.logingTime + str(e))
+
+    def getOldFile(self,zipFileName, fileName):
+        UId = fileName.split("_")[0]
+        zipUId = zipFileName.split("_")[0]
+        lastRunDate = self.getLenderLastRunDate(UId,zipUId)
+        lastRunDateStr = lastRunDate.strftime("%Y%m%d-%H%M%S")
+
+        txtFileName = UId+"_"+lastRunDateStr+".txt"
+        zipFileName = zipUId+"_"+lastRunDateStr+".zip"
+
+        oldFiles = list()
+
+        match = re.search(r"\d{4}-\d{2}-\d{2}", str(lastRunDate))
+
+        if match:
+            date_str = match.group()
+            folderDate = datetime.strptime(date_str, "%Y-%m-%d").date()
+
+            files = os.listdir(str(folderDate))
+
+            if len(files) != 0:
+                for file in files:
+                    if zipFileName in file:
+                        zip_file_path = os.path.join(str(folderDate), file)
+                        try:
+                            with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
+                                txtFiles = zip_file.namelist()
+                                if len(txtFiles) != 0:
+                                    for txtFile in txtFiles:
+                                        if txtFileName in txtFile:
+                                            oldFiles.append(zip_file_path)
+                                            oldFiles.append(txtFile)
+                        except Exception as e:
+                            logging.error(self.logingTime+str(e))
+        return oldFiles
+
+    def compareTwoFilesAndGetContent(self, oldFile, newFile):
+        oldFileZipPath = oldFile[0]
+        newFileZipPath = newFile[0]
+        oldTextFile = oldFile[1]
+        newTextFile = newFile[1]
+
+        with zipfile.ZipFile(oldFileZipPath, 'r') as zip_file:
+            txtFiles = zip_file.namelist()
+            if len(txtFiles) != 0:
+                for txtFile in txtFiles:
+                    if oldTextFile in txtFile:
+                        with zip_file.open(oldTextFile) as inner_file:
+                            oldFileLines = inner_file.readlines()
+
+        with zipfile.ZipFile(newFileZipPath, 'r') as zip_file:
+            txtFiles = zip_file.namelist()
+            if len(txtFiles) != 0:
+                for txtFile in txtFiles:
+                    if newTextFile in txtFile:
+                        with zip_file.open(newTextFile) as inner_file:
+                            newFileLines = inner_file.readlines()
+
+        content = ""
+        for i in range(len(oldFileLines)):
+            if oldFileLines[i] != newFileLines[i]:
+                content = content + "<tr>"
+                if i != 0:
+                    content = content  + "<td>" + str(oldFileLines[i-1].decode()) + str(oldFileLines[i].decode()) + "</td>"
+                    content = content  + "<td>" + str(newFileLines[i-1].decode()) + str(newFileLines[i].decode()) + "</td>"
+                else:
+                    content = content  + "<td>" + str(oldFileLines[i].decode()) + "</td>"
+                    content = content  + "<td>" + str(newFileLines[i].decode()) + "</td>"
+
+        return content
 
     def lenderReadAndStore(self):
         regions = self.getRegions()
-
         folder_path = self.today
         if len(regions) != 0:
             if not os.path.exists(folder_path):
                 os.makedirs(folder_path)
 
+            lendersIdSet = set()
             for region in regions:
                 regionId = region[0]
                 regionUId = region[2]
@@ -189,11 +330,10 @@ class mlhTracker:
                             lenderUId = lender[3]
                             lenderLastUpdatedDate = datetime.strptime(str(lender[4]), '%Y-%m-%d %H:%M:%S').date()
                             page = self.getPage(regionUId, lenderUId)
-
                             try:
                                 soup = self.removeTags(page.content)
                             except Exception as e:
-                                logging.error(str(e))
+                                logging.error(self.logingTime+str(e))
 
                             publish = soup.find_all(id="publish")
 
@@ -207,6 +347,7 @@ class mlhTracker:
 
                             # check lender database get updated value and webpage modified value if its change less than modified date it will update
                             if lenderLastUpdatedDate < lenderLastModifiedDate:
+                                lendersIdSet.add(lenderId)
                                 lenderLastModifiedDate = datetime.combine(lenderLastModifiedDate, self.current_time)
                                 self.updateLenderDate(lenderId, lenderLastModifiedDate)
 
@@ -214,18 +355,16 @@ class mlhTracker:
 
                                 if len(content) != 0:
                                     myzip.writestr(lenderUId + '_' + self.timestr + '.txt', content)
-
+        return lendersIdSet
     def lenderReadAndSendMail(self):
-        logingTime = time.strftime("%Y/%m/%d %H:%M:%S")
-        logging.error(logingTime + ": Program Started")
+        logging.error(self.logingTime + ": Program Started")
 
         #self.checkTheFoldersIsExpired()
         folder_path = self.today
-        self.lenderReadAndStore()
+        lendersIdSet = self.lenderReadAndStore()
 
         if os.path.exists(folder_path):
             customers = self.getCustomers()
-
             if len(customers) != 0:
                 for customer in customers:
                     customerId = customer[0]
@@ -242,7 +381,7 @@ class mlhTracker:
                         link = '<a href="https://lendershandbook.ukfinance.org.uk/lenders-handbook/' + regionUId + '/' + lenderUId + '/question-list/">For reference please click this link</a>'
 
                         content = ""
-
+                        newFile = list()
                         files = os.listdir(self.today)
 
                         if len(files) != 0:
@@ -255,23 +394,32 @@ class mlhTracker:
                                     try:
                                         with zipfile.ZipFile(zip_file_path, 'r') as zip_file:
                                             txtFiles = zip_file.namelist()
+
                                             if len(txtFiles) != 0:
                                                 for txtFile in txtFiles:
                                                     if txtFileName in txtFile:
-                                                        try:
-                                                            with zip_file.open(txtFile) as inner_file:
-                                                                text = inner_file.read()
-                                                                text = text.decode()
-                                                                content = content + text
-                                                        except Exception as e:
-                                                            logging.error(str(e))
-                                                        content = content+link
+                                                        oldFile = self.getOldFile(zipFileName, txtFileName)
 
-                                                        mail.sendHtmlMail(emailId,"MLH Tracker Updates: " + region + " - " + lender + "",content)
+                                                        newFile.append(zip_file_path)
+                                                        newFile.append(txtFile)
 
-                                                        exit()
+                                                        content = content + "<table><thead><th style='width: 50%'>Previous</th><th style='width: 50%'>Current</th></thead>"
+                                                        changes = self.compareTwoFilesAndGetContent(oldFile,newFile)
+
+                                                        if changes != "":
+                                                            content = content + changes + "</table>"
+                                                            content = str(content+link)
+                                                            mail.sendHtmlMail(emailId,"MLH Tracker Updates: " + region + " - " + lender + "",content)
                                     except Exception as e:
-                                        logging.error(str(e))
+                                        logging.error(self.logingTime+ str(e))
+        lastRunDate = datetime.strptime(self.timestr, "%Y%m%d-%H%M%S")
+        lastRunDate = lastRunDate.strftime('%Y-%m-%d %H:%M:%S')
+
+        if len(lendersIdSet) != 0:
+            for lenderId in lendersIdSet:
+                self.updateLenderLastRunDate(lastRunDate, lenderId)
+        logging.error(self.logingTime + "Process Completed")
+
     def processCheckAll(self,count):
         try:
             schedule.every(4).hours.do(self.lenderReadAndSendMail)
@@ -281,9 +429,9 @@ class mlhTracker:
         except Exception as e:
             if count > 3:
                 count = 1
-                logging.error("Error in schedule_thread:", str(e))
+                logging.error(self.logingTime+ "Error in schedule_thread:", str(e))
             else:
-                logging.error("Error in schedule_thread:", str(e))
+                logging.error(self.logingTime+ "Error in schedule_thread:", str(e))
                 count = count + 1
                 time.sleep(1)
                 self.processCheckAll()
