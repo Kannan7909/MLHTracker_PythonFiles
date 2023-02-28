@@ -17,16 +17,14 @@ class mlhTracker:
         self.timestr = time.strftime("%Y%m%d-%H%M%S")
         self.today = str(datetime.today()).split()[0]
         self.current_time = datetime.now().time()
-        #database configuration
-        self.mydb = mysql.connector.connect(
-            host="localhost",
-            user="root",
-            password="",
-            database="ukfinance"
-        )
-        self.mycursor = self.mydb.cursor()
-
         logging.basicConfig(filename='error.log', level=logging.ERROR)
+        # database configuration
+        self.connection = mysql.connector.connect(
+            host="162.241.85.86",
+            user="mlhtracc_localhost",
+            password="MLHTracker@123",
+            database="mlhtracc_tracker"
+        )
 
     def checkTheFoldersIsExpired(self):
         directories = os.listdir()
@@ -45,15 +43,19 @@ class mlhTracker:
                 continue;
 
     def getRegions(self):
-        self.mycursor.execute("SELECT * FROM regions")
-        regions = self.mycursor.fetchall()
+        cursor = self.connection.cursor()
+        cursor.execute("SELECT * FROM regions")
+        regions = cursor.fetchall()
+        cursor.close()
         return regions
 
     def getLenders(self, regionId):
+        cursor = self.connection.cursor()
         sql = "SELECT * FROM lenders WHERE regionId = %s"
         params = (regionId,)
-        self.mycursor.execute(sql, params)
-        lenders = self.mycursor.fetchall()
+        cursor.execute(sql, params)
+        lenders = cursor.fetchall()
+        cursor.close()
         return lenders
 
     def removeTags(self,html):
@@ -122,35 +124,44 @@ class mlhTracker:
         return content;
 
     def updateRegionDate(self,regionId, regionLastModifiedDate):
+        cursor = self.connection.cursor()
         sql = "UPDATE regions SET lastUpdatedDate = %s WHERE regionId = %s"
         params = (regionLastModifiedDate, regionId)
-        self.mycursor.execute(sql, params)
-        self.mydb.commit()
+        cursor.execute(sql, params)
+        connection.commit()
+        cursor.close()
 
     def updateLenderDate(self,lenderId, lenderLastModifiedDate):
+        cursor = self.connection.cursor()
         sql = "UPDATE lenders SET lastUpdatedDate = %s WHERE lenderId = %s"
         params = lenderLastModifiedDate, lenderId
-        self.mycursor.execute(sql, params)
-        self.mydb.commit()
+        cursor.execute(sql, params)
+        connection.commit()
+        cursor.close()
 
     def getCustomers(self):
+        cursor = self.connection.cursor()
         sql = "SELECT customerId, firstName, lastName, email, phone, address, company, emailValidation from customers where emailValidation = %s"
         params = (1,)
-        self.mycursor.execute(sql, params)
-        customers = self.mycursor.fetchall()
+        cursor.execute(sql, params)
+        customers = cursor.fetchall()
+        cursor.close()
         return customers
 
     def getCustomerLenders(self,customerId):
+        cursor = self.connection.cursor()
         sql = "SELECT customerId, regions.uId as regionUId, regions.region as region, lenders.uId as lenderUId, " \
               "lenders.lender as lender FROM lender_child LEFT OUTER JOIN regions ON lender_child.regionId = regions.regionId " \
               "LEFT OUTER JOIN lenders ON lender_child.lenderId = lenders.lenderId WHERE customerId = %s"
         params = (customerId,)
-        self.mycursor.execute(sql, params)
-        customerLenders = self.mycursor.fetchall()
+        cursor.execute(sql, params)
+        customerLenders = cursor.fetchall()
+        cursor.close()
         return customerLenders
 
     def lenderReadAndStore(self):
         regions = self.getRegions()
+
         folder_path = self.today
         if len(regions) != 0:
             if not os.path.exists(folder_path):
@@ -208,7 +219,7 @@ class mlhTracker:
         logingTime = time.strftime("%Y/%m/%d %H:%M:%S")
         logging.error(logingTime + ": Program Started")
 
-        self.checkTheFoldersIsExpired()
+        #self.checkTheFoldersIsExpired()
         folder_path = self.today
         self.lenderReadAndStore()
 
