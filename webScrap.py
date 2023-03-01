@@ -290,13 +290,17 @@ class mlhTracker:
         content = ""
         for i in range(len(oldFileLines)):
             if oldFileLines[i] != newFileLines[i]:
-                content = content + "<tr>"
+                content = content
                 if i != 0:
-                    content = content  + "<td>" + str(oldFileLines[i-1].decode()) + str(oldFileLines[i].decode()) + "</td>"
-                    content = content  + "<td>" + str(newFileLines[i-1].decode()) + str(newFileLines[i].decode()) + "</td>"
+                    content = content + "<div style='background: #c5e6dd; margin-top: 20px;'>"
+                    content = content  + "<h3 style='padding: 10px;'>Previous Wording</h3>" + str(oldFileLines[i-1].decode()) + str(oldFileLines[i].decode())
+                    content = content  + "<h3 style='padding: 10px;'>Updated Wording</h3>" + str(newFileLines[i-1].decode()) + str(newFileLines[i].decode())
+                    content = content + "</div>"
                 else:
-                    content = content  + "<td>" + str(oldFileLines[i].decode()) + "</td>"
-                    content = content  + "<td>" + str(newFileLines[i].decode()) + "</td>"
+                    content = content + "<div style='background: #c5e6dd; margin-top: 20px;'>"
+                    content = content  + "<h3 style='padding: 10px;'>Previous Wording</h3>" + str(oldFileLines[i].decode())
+                    content = content  + "<h3 style='padding: 10px;'>Previous Wording</h3>" + str(newFileLines[i].decode())
+                    content = content + "</div>"
 
         return content
 
@@ -403,11 +407,11 @@ class mlhTracker:
                                                         newFile.append(zip_file_path)
                                                         newFile.append(txtFile)
 
-                                                        content = content + "<table><thead><th style='width: 50%'>Previous</th><th style='width: 50%'>Current</th></thead>"
+                                                        content = content
                                                         changes = self.compareTwoFilesAndGetContent(oldFile,newFile)
 
                                                         if changes != "":
-                                                            content = content + changes + "</table>"
+                                                            content = content + changes
                                                             content = str(content+link)
                                                             mail.sendHtmlMail(emailId,"MLH Tracker Updates: " + region + " - " + lender + "",content)
                                     except Exception as e:
