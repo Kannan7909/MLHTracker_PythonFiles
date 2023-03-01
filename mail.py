@@ -6,7 +6,7 @@ from email.header import Header
 
 def sendHtmlMail(emailId, subject, content):
     sender_email = "admin@mlhtracker.com"
-    sender_password = "WR}8Cg#P}ijz"
+    sender_password = "u+YDrM9U5^K{"
     msg = MIMEMultipart()
     msg["Subject"] = subject
     msg["From"] = str(Header('MLH Tracker', 'utf-8')) + '<admin@mlhtracker.com>'  # set sender name and email address"
@@ -25,7 +25,7 @@ def sendHtmlMail(emailId, subject, content):
 
 def sendNormalMail(emailId, subject, content):
     sender_email = "admin@mlhtracker.com"
-    sender_password = "WR}8Cg#P}ijz"
+    sender_password = "u+YDrM9U5^K{"
     receiver_email = emailId
 
     server = smtplib.SMTP("mail.mlhtracker.com", 587)
@@ -45,4 +45,4 @@ def sendNormalMail(emailId, subject, content):
         logging.error(str(e))
     server.quit()
 
-#sendHtmlMail("kannanaa21@gmail.com", "test", "<p>Kannan</p>")
+sendHtmlMail("kannanaa21@gmail.com", "test", "<p>Kannan</p>")
