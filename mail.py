@@ -45,4 +45,4 @@ def sendNormalMail(emailId, subject, content):
         logging.error(str(e))
     server.quit()
 
-sendHtmlMail("kannanaa21@gmail.com", "test", "<p>Kannan</p>")
+#sendHtmlMail("kannanaa21@gmail.com", "test", "<p>Kannan</p>")
