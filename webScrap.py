@@ -290,17 +290,10 @@ class mlhTracker:
         content = ""
         for i in range(len(oldFileLines)):
             if oldFileLines[i] != newFileLines[i]:
-                content = content
-                if i != 0:
-                    content = content + "<div style='background: #c5e6dd; margin-top: 20px;'>"
-                    content = content  + "<h3 style='padding: 10px;'>Previous Wording</h3>" + str(oldFileLines[i-1].decode()) + str(oldFileLines[i].decode())
-                    content = content  + "<h3 style='padding: 10px;'>Updated Wording</h3>" + str(newFileLines[i-1].decode()) + str(newFileLines[i].decode())
-                    content = content + "</div>"
-                else:
-                    content = content + "<div style='background: #c5e6dd; margin-top: 20px;'>"
-                    content = content  + "<h3 style='padding: 10px;'>Previous Wording</h3>" + str(oldFileLines[i].decode())
-                    content = content  + "<h3 style='padding: 10px;'>Previous Wording</h3>" + str(newFileLines[i].decode())
-                    content = content + "</div>"
+                content = content + "<div style='background: #c5e6dd; margin-top: 20px;'>"
+                content = content  + "<h3 style='padding: 10px;'>Previous Wording</h3><br><div>" + str(oldFileLines[i].decode())
+                content = content  + "<h3 style='padding: 10px;'>Updated Wording</h3><br><div>" + str(newFileLines[i].decode())
+                content = content + "</div>"
 
         return content
 
