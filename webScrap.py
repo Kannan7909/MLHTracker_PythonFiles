@@ -396,11 +396,18 @@ class mlhTracker:
                                                 for txtFile in txtFiles:
                                                     if txtFileName in txtFile:
                                                         oldFile = self.getOldFile(zipFileName, txtFileName)
+                                                        lastUpdatedDate = self.getLastUpdateDate(zipFileName,
+                                                                                                 txtFileName)
+                                                        match = re.search(r"\d{4}-\d{2}-\d{2}", str(lastUpdatedDate))
 
+                                                        if match:
+                                                            date_str = match.group()
+                                                            lastUpdatedDate = datetime.strptime(date_str,
+                                                                                                "%Y-%m-%d").date()
                                                         newFile.append(zip_file_path)
                                                         newFile.append(txtFile)
 
-                                                        content = content
+                                                        content = content + "Last updated : " + str(lastUpdatedDate)
                                                         changes = self.compareTwoFilesAndGetContent(oldFile,newFile)
 
                                                         if changes != "":
