@@ -452,9 +452,13 @@ class mlhTracker:
                 self.updateLenderLastRunDate(lastRunDate, lenderId)
         logging.error(self.logingTime + "Process Completed")
 
+    def runProgram(self):
+        mlhObj = mlhTracker()
+        mlhObj.lenderReadAndSendMail()
+
     def processCheckAll(self,count):
         try:
-            schedule.every(4).hours.do(self.lenderReadAndSendMail)
+            schedule.every(4).hours.do(self.runProgram)
             while True:
                 schedule.run_pending()
                 time.sleep(1)
