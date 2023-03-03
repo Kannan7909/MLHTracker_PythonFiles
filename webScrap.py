@@ -230,6 +230,34 @@ class mlhTracker:
         except Exception as e:
             logging.error("Error in update lenders last run date"+self.logingTime + str(e))
 
+    def getLastUpdateDate(self,zipFileName, txtFileName):
+        UId = txtFileName.split("_")[0]
+        zipUId = zipFileName.split("_")[0]
+
+        connection = self.dbConnection()
+        cursor = connection.cursor()
+        try:
+            sql = "SELECT regionId From regions WHERE uId = %s"
+            params = (zipUId,)
+            cursor.execute(sql, params)
+            regionId = cursor.fetchone()
+        except Exception as e:
+            logging.error("Error in get last run date" + self.logingTime + str(e))
+        for regionId in regionId:
+            regionId = regionId
+
+        try:
+            sql = "SELECT lastUpdatedDate From lenders WHERE uId = %s AND regionId = %s"
+            params = (UId, regionId)
+            cursor.execute(sql, params)
+            lastUpdatedDate = cursor.fetchone()
+            cursor.close()
+        except Exception as e:
+            logging.error("Error in get last run date" + self.logingTime + str(e))
+        for lastUpdatedDate in lastUpdatedDate:
+            lastUpdatedDate = lastUpdatedDate
+        return lastUpdatedDate
+
     def getOldFile(self,zipFileName, fileName):
         UId = fileName.split("_")[0]
         zipUId = zipFileName.split("_")[0]
