@@ -85,10 +85,13 @@ class mlhTracker:
     def getRegionLastModifiedDate(self,regionUId):
         URL = 'https://lendershandbook.ukfinance.org.uk/lenders-handbook/' + regionUId + '/'
         # Page content from Website URL
+        page = ""
         try:
             page = requests.get(URL)
         except Exception as e:
             logging.error(self.logingTime+str(e))
+
+        soup = ""
         try:
             soup = self.removeTags(page.content)
         except Exception as e:
@@ -96,15 +99,20 @@ class mlhTracker:
 
         publish = soup.find_all(id="publish")
 
-        regionLastModifiedStr = publish[0].getText()
-        regionLastModifiedDateStr = regionLastModifiedStr.split("Last modified: ", 1)[1]
-        regionLastModifiedDateStr = regionLastModifiedDateStr.replace(" ", "")
-        regionLastModifiedDate = datetime.strptime(regionLastModifiedDateStr, '%d/%m/%Y').date()
+        regionLastModifiedDate = ""
+
+        if len(publish) >= 1:
+            regionLastModifiedStr = publish[0].getText()
+            regionLastModifiedDateStr = regionLastModifiedStr.split("Last modified: ", 1)[1]
+            regionLastModifiedDateStr = regionLastModifiedDateStr.replace(" ", "")
+            regionLastModifiedDate = datetime.strptime(regionLastModifiedDateStr, '%d/%m/%Y').date()
+
         return regionLastModifiedDate
 
     def getPage(self,regionUId, lenderUId):
         URL = 'https://lendershandbook.ukfinance.org.uk/lenders-handbook/' + regionUId + '/' + lenderUId + '/question-list/'
         # Page content from Website URL
+        page = ""
         try:
             page = requests.get(URL)
         except Exception as e:
@@ -339,6 +347,9 @@ class mlhTracker:
                 regionLastUpdatedDate = datetime.strptime(str(region[3]), '%Y-%m-%d %H:%M:%S').date()
 
                 regionLastModifiedDate = self.getRegionLastModifiedDate(regionUId)
+
+                if regionLastModifiedDate == "":
+                    regionLastModifiedDate = regionLastUpdatedDate
 
                 # check region database get updated value and webpage modified value if its change less than modified date it will update
                 if regionLastUpdatedDate < regionLastModifiedDate:
