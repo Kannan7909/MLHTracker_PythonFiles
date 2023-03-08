@@ -373,13 +373,19 @@ class mlhTracker:
 
                             publish = soup.find_all(id="publish")
 
-                            lenderLastModifiedStr = publish[1].getText()
-                            lenderLastModifiedDateStr = lenderLastModifiedStr.split("Last modified: ", 1)[1]
-                            lenderLastModifiedDateStr = lenderLastModifiedDateStr.replace(" ", "")
-                            isDate = re.search(r'\d{2}/\d{2}/\d{4}', lenderLastModifiedDateStr)
-                            if isDate == None:
-                                continue
-                            lenderLastModifiedDate = datetime.strptime(lenderLastModifiedDateStr, '%d/%m/%Y').date()
+                            lenderLastModifiedDate = ""
+                            
+                            if len(publish) >= 1:
+                                lenderLastModifiedStr = publish[1].getText()
+                                lenderLastModifiedDateStr = lenderLastModifiedStr.split("Last modified: ", 1)[1]
+                                lenderLastModifiedDateStr = lenderLastModifiedDateStr.replace(" ", "")
+                                isDate = re.search(r'\d{2}/\d{2}/\d{4}', lenderLastModifiedDateStr)
+                                if isDate == None:
+                                    continue
+                                lenderLastModifiedDate = datetime.strptime(lenderLastModifiedDateStr, '%d/%m/%Y').date()
+
+                            if lenderLastModifiedDate == "":
+                                lenderLastModifiedDate = lenderLastUpdatedDate
 
                             # check lender database get updated value and webpage modified value if its change less than modified date it will update
                             if lenderLastUpdatedDate < lenderLastModifiedDate:
