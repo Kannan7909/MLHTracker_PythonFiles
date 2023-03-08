@@ -481,7 +481,7 @@ class mlhTracker:
                 logging.error(self.logingTime+ "Error in schedule_thread:", str(e))
                 count = count + 1
                 time.sleep(1)
-                self.processCheckAll()
+                self.processCheckAll(count)
 
 
 count = 1;
